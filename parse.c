@@ -3,6 +3,8 @@
 Node *new_node (NodeKind nkind, Node *left, Node *right, char *s) {
     Node *node = (Node*) malloc (sizeof(Node));
     node->nkind = nkind;
+    node->left = left;
+    node->right = right;
 
     int ac;
     if (nkind == ND_CMD) {
