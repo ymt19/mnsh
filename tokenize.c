@@ -71,8 +71,8 @@ Token *tokenize (char *s) {
             cur = new_token(TK_RESERVED, cur, "|", 1);
             *s = '\0';
             s++;
-        } else if (cur->tkind != TK_CMD) {
-            cur = new_token(TK_CMD, cur, s, 0);
+        } else if (cur->tkind != TK_WORD) {
+            cur = new_token(TK_WORD, cur, s, 0);
         } else {
             s++;
         }

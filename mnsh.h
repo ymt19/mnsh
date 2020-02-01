@@ -12,7 +12,7 @@
 // tokenize.c
 typedef enum {
     TK_RESERVED,    // 記号
-    TK_CMD,         // コマンド
+    TK_WORD,         // コマンド(+オプション), ファイル
     TK_EOF,
 } TokenKind;
 
