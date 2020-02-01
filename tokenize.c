@@ -1,6 +1,7 @@
 #include "mnsh.h"
 
 // 該当文字列str, 配列vec, 配列の最大格納数max
+// parse.cで使うのでここに置くのは微妙
 int splitspace (char *str, char **vec, int max) {
     int num, skip;
     if (max < 1 || vec == 0) {
@@ -79,4 +80,14 @@ Token *tokenize (char *s) {
     }
     new_token(TK_EOF, cur, s, 0);
     return head.next;
+}
+
+// 着目してるトークン(token)が指定した記号(TK_RESERVED)の時
+// トークンを1つ読み進める
+int token_is_reserved (char *s) {
+    if (token->tkind != TK_RESERVED || strcmp(token->str, s) != 0) {
+        return 0;
+    }
+    token = token->next;
+    return 1;
 }
