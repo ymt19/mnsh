@@ -3,15 +3,26 @@
 #include <sys/types.h>
 #include <sys/wait.h>
 #include <unistd.h>
+#include "mnsh.h"
+
+#define MAXARGV 100
+#define MAXLINE 4096
 
 int main(void) {
-    char cmd[1024];
-    int status;
+    char cmd[MAXLINE];
+    char *av[MAXARGV];
+    int status, ac;
     pid_t cpid;
 
     for (;;) {
         fprintf(stderr, "$ ");
-        scanf("%s", cmd);
+        fgets(cmd, MAXLINE, stdin);
+        
+        if ((ac = tokenize(cmd, av, MAXARGV)) > MAXARGV) {
+            fprintf(stderr, "too many arguments\n");
+            continue;
+        }
+        if (ac == 1) continue;
 
         if ((cpid = fork()) == -1) {
             // fork error
@@ -19,7 +30,7 @@ int main(void) {
             exit(1);
         } else if (cpid == 0) {
             // child process
-            execlp(cmd, cmd, (char*)0);
+            execvp(av[0], av);
             perror(cmd);
             exit(1);
         }
