@@ -1,6 +1,5 @@
 #include "mnsh.h"
 
-#define MAXARGV 100
 #define MAXLINE 4096
 
 int main(void) {
@@ -21,8 +20,6 @@ int main(void) {
 
         // パースする(二分木を作る)
         Node *node = expr();
-        printf("%s\n", node->left->cmd[0]);
-        printf("%s\n", node->right->cmd[0]);
 
         if ((cpid = fork()) == -1) {
             // fork error
