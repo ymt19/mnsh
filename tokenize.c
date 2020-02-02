@@ -83,7 +83,8 @@ Token *tokenize (char *s) {
 }
 
 // 着目してるトークン(token)が指定した記号(TK_RESERVED)の時
-// トークンを1つ読み進める
+// 1を返し、トークンを1つ読み進める
+// それ以外の時、0を返す
 // parse.cで使用
 int token_is_reserved (char *s) {
     if (token->tkind != TK_RESERVED || strcmp(token->str, s) != 0) {

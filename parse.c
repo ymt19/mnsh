@@ -24,11 +24,24 @@ Node *new_node (NodeKind nkind, Node *left, Node *right, char *s) {
 }
 
 // 再帰下降構文解析
+Node *redirection();
 Node *file();
 Node *cmd();
 
-// expr = cmd ('<' file | '>' file | '2>' file | '>>' file | '2<<' file)
-Node *expr () {
+// expr = redirection ('|' redirection)*
+Node *expr() {
+    Node *node = redirection();
+    for (;;) {
+        if (token_is_reserved("|")) {
+            node = new_node(ND_PIPE, node, redirection(), NULL);
+        } else {
+            return node;
+        }
+    }
+}
+
+// redirection = cmd ('<' file | '>' file | '2>' file | '>>' file | '2<<' file)*
+Node *redirection () {
     Node *node = cmd();
     for (;;) {
         if (token_is_reserved("<")) {
@@ -47,12 +60,14 @@ Node *expr () {
     }
 }
 
+// file = word
 Node *file() {
     Node *node = new_node(ND_FILE, NULL, NULL, token->str);
     token = token->next;
     return node;
 }
 
+// cmd = word
 Node *cmd() {
     Node *node = new_node(ND_CMD, NULL, NULL, token->str);
     token = token->next;

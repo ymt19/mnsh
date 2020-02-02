@@ -13,12 +13,14 @@
 
 
 /* tokenize.c */
+// トークンの種類
 typedef enum {
     TK_RESERVED,    // 記号
     TK_WORD,        // コマンド(+オプション), ファイル
     TK_EOF,
 } TokenKind;
 
+// トークン
 typedef struct Token Token;
 struct Token {
     TokenKind tkind;
@@ -32,6 +34,7 @@ int token_is_reserved(char*);
 
 
 /* parse.c */
+// 二分木のノードの種類
 typedef enum {
     ND_CMD,             // コマンド(+オプション)
     ND_FILE,            // ファイル
@@ -43,6 +46,7 @@ typedef enum {
     ND_PIPE,            // |
 } NodeKind;
 
+// 二分木のノード
 typedef struct Node Node;
 struct Node {
     NodeKind nkind;

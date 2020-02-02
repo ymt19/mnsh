@@ -35,7 +35,10 @@ void redirect (Node *node) {
     if (nk == ND_REDSTDIN) {
     // 標準入力
         if (STDIN_FILENO == fileno(stdin)) {
-            dup2(fd, STDIN_FILENO);
+            if ((dup2(fd, STDIN_FILENO)) == -1) {
+                perror("dup2");
+                exit(1);        // エラー処理
+            }
         }
     } else if (nk == ND_REDSTDOUT || nk == ND_REDSTDOUT_PLUS) {
     // 標準出力
@@ -48,6 +51,60 @@ void redirect (Node *node) {
         if (STDERR_FILENO == fileno(stderr)) {
             dup2(fd, STDERR_FILENO);
         }
+    }
+}
+
+// パイプライン
+void pipeline (Node *node) {
+    int fd[2];
+    pid_t pid;
+    if (pipe(fd) == -1) {
+        perror("pipe");
+        exit(1);        // このエラー処理をどうするか
+    }
+
+    if ((pipe(fd)) == -1) {
+        perror("pipe");
+        exit(1);
+    }
+
+    if ((pid = fork()) == -1) {
+        perror("fork");
+        exit(1);
+    } else if (pid == 0) {
+    // 子プロセス
+    // 左部分木
+        node = node->left;
+        if ((dup2(fd[1], 1)) == -1) {
+            perror("dup2");
+            exit(1);
+        }
+        if (close(fd[0]) == -1) {
+            perror("close");
+            exit(1);
+        }
+        if (close(fd[1]) == -1) {
+            perror("close");
+            exit(1);
+        }
+        chexec(node);
+    } else {
+    // 親プロセス
+    // 右部分木
+        node = node->right;
+        if ((dup2(fd[0], 0)) == -1) {
+            perror("dup2");
+            exit(1);
+        }
+        if (close(fd[0]) == -1) {
+            perror("close");
+            exit(1);
+        }
+        if (close(fd[1]) == -1) {
+            perror("close");
+            exit(1);
+        }
+        chexec(node);
     }
 }
 
@@ -74,7 +131,7 @@ void chexec (Node *node) {
     } else if (node->nkind == ND_REDSTDERR_PLUS) {
         redirect(node);
         chexec(node->left);
+    } else if (node->nkind == ND_PIPE) {
+        pipeline(node);
     }
-
-    
 }
