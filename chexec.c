@@ -35,7 +35,7 @@ void redirect (Node *node) {
     if (nk == ND_REDSTDIN) {
     // 標準入力
         if (STDIN_FILENO == fileno(stdin)) {
-            dup2(fd, STDERR_FILENO);
+            dup2(fd, STDIN_FILENO);
         }
     } else if (nk == ND_REDSTDOUT || nk == ND_REDSTDOUT_PLUS) {
     // 標準出力
