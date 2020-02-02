@@ -4,13 +4,15 @@
 #include <sys/types.h>
 #include <sys/wait.h>
 #include <unistd.h>
+#include <sys/stat.h>
+#include <fcntl.h>
 #include <ctype.h>
 
 // 1回の操作のコマンド全体
 #define MAXARGV 100
 
 
-// tokenize.c
+/* tokenize.c */
 typedef enum {
     TK_RESERVED,    // 記号
     TK_WORD,        // コマンド(+オプション), ファイル
@@ -29,7 +31,7 @@ Token *tokenize(char*);
 int token_is_reserved(char*);
 
 
-// parse.c
+/* parse.c */
 typedef enum {
     ND_CMD,             // コマンド(+オプション)
     ND_FILE,            // ファイル
@@ -51,3 +53,7 @@ struct Node {
 
 Token *token;   // 着目しているToken
 Node *expr();
+
+
+/* chexec.c */
+void chexec(Node*);

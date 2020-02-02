@@ -1,8 +1,3 @@
-#include <stdio.h>
-#include <stdlib.h>
-#include <sys/types.h>
-#include <sys/wait.h>
-#include <unistd.h>
 #include "mnsh.h"
 
 #define MAXARGV 100
@@ -15,14 +10,19 @@ int main(void) {
     pid_t cpid;
 
     for (;;) {
+        // プロンプトの表示, 文字列受け取り
         fprintf(stderr, "$ ");
         fgets(cmd, MAXLINE, stdin);
         
-        if ((ac = tokenize(cmd, av, MAXARGV)) > MAXARGV) {
-            fprintf(stderr, "too many arguments\n");
+        // トークナイズする
+        if ((token = tokenize(cmd)) == NULL) {
             continue;
         }
-        if (ac == 1) continue;
+
+        // パースする(二分木を作る)
+        Node *node = expr();
+        printf("%s\n", node->left->cmd[0]);
+        printf("%s\n", node->right->cmd[0]);
 
         if ((cpid = fork()) == -1) {
             // fork error
@@ -30,7 +30,7 @@ int main(void) {
             exit(1);
         } else if (cpid == 0) {
             // child process
-            execvp(av[0], av);
+            chexec(node);
             perror(cmd);
             exit(1);
         }
@@ -40,5 +40,5 @@ int main(void) {
             exit(1);
         }
     }
-    exit(0);
+    return 0;
 }

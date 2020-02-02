@@ -26,7 +26,7 @@ int splitspace (char *str, char **vec, int max) {
         *str = '\0';
         str++;
     }
-    if (!skip) vec[num] = 0;
+    if (!skip) vec[num] = NULL;
     num++;
     return num;
 }
@@ -84,6 +84,7 @@ Token *tokenize (char *s) {
 
 // 着目してるトークン(token)が指定した記号(TK_RESERVED)の時
 // トークンを1つ読み進める
+// parse.cで使用
 int token_is_reserved (char *s) {
     if (token->tkind != TK_RESERVED || strcmp(token->str, s) != 0) {
         return 0;
