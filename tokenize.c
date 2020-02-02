@@ -78,6 +78,11 @@ Token *tokenize (char *s) {
             s++;
         }
     }
+
+    // トークンが無いとき
+    if (head.next == NULL) {
+        return NULL;
+    }
     new_token(TK_EOF, cur, s, 0);
     return head.next;
 }
