@@ -7,6 +7,7 @@
 #include <sys/stat.h>
 #include <fcntl.h>
 #include <ctype.h>
+#include <signal.h>
 
 // 1回の操作のコマンド全体
 #define MAXARGV 100
