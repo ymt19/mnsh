@@ -1,7 +1,7 @@
 #include "mnsh.h"
 
 // リダイレクトの処理
-void redirect (Node *node) {
+void do_redirect (Node *node) {
     int fd;
     char *fn;
     NodeKind nk = node->nkind;
@@ -12,7 +12,6 @@ void redirect (Node *node) {
         if (nk == ND_REDSTDIN) {
             if ((fd = open(fn, O_RDONLY)) == -1) {
                 perror("opne");
-                // exitしない方法を考える
                 exit(1);
             }
         } else if (nk == ND_REDSTDOUT || nk == ND_REDSTDERR) {
@@ -34,33 +33,32 @@ void redirect (Node *node) {
     // まだ書き換えられていない時にfdに変更
     if (nk == ND_REDSTDIN) {
     // 標準入力
-        if (STDIN_FILENO == fileno(stdin)) {
-            if ((dup2(fd, STDIN_FILENO)) == -1) {
-                perror("dup2");
-                exit(1);        // エラー処理
-            }
+        if ((dup2(fd, STDIN_FILENO)) == -1) {
+            perror("dup2");
+            exit(1);
         }
     } else if (nk == ND_REDSTDOUT || nk == ND_REDSTDOUT_PLUS) {
     // 標準出力
-        if (STDOUT_FILENO == fileno(stdout)) {
-            printf("1");
-            dup2(fd, STDOUT_FILENO);
+        if ((dup2(fd, STDOUT_FILENO)) == -1) {
+            perror("dup2");
+            exit(1);
         }
     } else if (nk == ND_REDSTDERR || nk == ND_REDSTDERR_PLUS) {
     // 標準エラー出力
-        if (STDERR_FILENO == fileno(stderr)) {
-            dup2(fd, STDERR_FILENO);
+        if ((dup2(fd, STDERR_FILENO)) == -1) {
+            perror("dup2");
+            exit(1);
         }
     }
 }
 
 // パイプライン
-void pipeline (Node *node) {
-    int fd[2];
+void do_pipeline (Node *node) {
+    int fd[2], status;
     pid_t pid;
     if (pipe(fd) == -1) {
         perror("pipe");
-        exit(1);        // このエラー処理をどうするか
+        exit(1);
     }
 
     if ((pipe(fd)) == -1) {
@@ -91,6 +89,11 @@ void pipeline (Node *node) {
     } else {
     // 親プロセス
     // 右部分木
+        if (wait(&status) == (pid_t)-1) {
+            perror("wait");
+            exit(1);
+        }
+
         node = node->right;
         if ((dup2(fd[0], 0)) == -1) {
             perror("dup2");
@@ -116,22 +119,22 @@ void chexec (Node *node) {
     } else if (node->nkind == ND_REDSTDIN) {
     // redirect()でそのノードと右部分木にあるファイル名を参照して
     // ファイル記述子を変更
-        redirect(node);
+        do_redirect(node);
         // 左部分木へ
         chexec(node->left);
     } else if (node->nkind == ND_REDSTDOUT) {
-        redirect(node);
+        do_redirect(node);
         chexec(node->left);
     } else if (node->nkind == ND_REDSTDERR) {
-        redirect(node);
+        do_redirect(node);
         chexec(node->left);
     } else if (node->nkind == ND_REDSTDOUT_PLUS) {
-        redirect(node);
+        do_redirect(node);
         chexec(node->left);
     } else if (node->nkind == ND_REDSTDERR_PLUS) {
-        redirect(node);
+        do_redirect(node);
         chexec(node->left);
     } else if (node->nkind == ND_PIPE) {
-        pipeline(node);
+        do_pipeline(node);
     }
 }
