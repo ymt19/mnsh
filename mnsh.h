@@ -8,6 +8,7 @@
 #include <fcntl.h>
 #include <ctype.h>
 #include <signal.h>
+#include <errno.h>
 
 // 1回の操作のコマンド全体
 #define MAXARGV 100
@@ -45,6 +46,7 @@ typedef enum {
     ND_REDSTDOUT_PLUS,  // >>
     ND_REDSTDERR_PLUS,  // 2>>
     ND_PIPE,            // |
+    ND_BG,              // &
 } NodeKind;
 
 // 二分木のノード

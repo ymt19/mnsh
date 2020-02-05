@@ -111,6 +111,54 @@ void do_pipeline (Node *node) {
     }
 }
 
+// バックグラウンドジョブ
+void do_background (Node *node) {
+    // case1
+    // 親プロセスでnodeからND_BGを含むかを判定し,waitするかを決める
+    // 問題は,文法を付け足した時にND_BGを含むかを判定する
+    // 必要が増える。今回は,ND_BGはnodeの根を見れば分かるので簡単
+    pid_t ppid = getppid();
+    signal(SIGTTOU, SIG_IGN);
+    // 親プロセス側で親プロセスグループをfgpgrpに
+    // 変更すると,子プロセスのバックグラウンドジョブで実行された子プロセスが
+    // 停止してしまったため,この場合のみ子プロセス側で親プロセスをfgpgrpnに戻した
+    if (tcsetpgrp(STDOUT_FILENO, getpgid(ppid)) == -1) {
+        perror("tcsetpgrp");
+        exit(1);
+    }
+    chexec(node->left);
+
+    // // case2
+    // // 孫プロセスを作り, 孫プロセスでコマンドを実行
+    // // 子プロセスでexitする
+    // // 問題は親プロセスが孫プロセスをwait出来ない
+    // pid_t cpid;
+    // if ((cpid = fork()) == -1) {
+    //     perror("fork");
+    //     exit(1);
+    // } else if (cpid == 0) {
+    //     // child process
+    //     // 親プロセスグループと子プロセスグループが
+    //     // 分けられるまで待つ
+    //     while (tcgetpgrp(STDOUT_FILENO) == getpid()) {
+    //         ;
+    //     }
+    //     // バックグラウンドでコマンドを実行する
+    //     node = node->left;
+    //     chexec(node);
+    // } else {
+    //     // parent process
+    //     // cpidをプロセスグループから分ける
+    //     if (setpgid(cpid, cpid) == -1) {
+    //         perror("setpgid");
+    //         exit(1);
+    //     }
+    //     // フォアグラウンドジョブ(親プロセス)は
+    //     // 終了する
+    //     exit(1);
+    // }
+}
+
 void chexec (Node *node) {
     if (node->nkind == ND_CMD) {
         execvp(node->cmd[0], node->cmd);
@@ -136,5 +184,7 @@ void chexec (Node *node) {
         chexec(node->left);
     } else if (node->nkind == ND_PIPE) {
         do_pipeline(node);
+    } else if (node->nkind == ND_BG) {
+        do_background(node);
     }
 }

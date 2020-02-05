@@ -24,12 +24,22 @@ Node *new_node (NodeKind nkind, Node *left, Node *right, char *s) {
 }
 
 // 再帰下降構文解析
+Node *pipeline();
 Node *redirection();
 Node *file();
 Node *cmd();
 
-// expr = redirection ('|' redirection)*
+// expr = pipeline '&'?  
 Node *expr() {
+    Node *node = pipeline();
+    if (token_is_reserved("&")) {
+        node = new_node(ND_BG, node, NULL, NULL);
+    }
+    return node;
+}
+
+// pipeline = redirection ('|' redirection)*
+Node *pipeline() {
     Node *node = redirection();
     for (;;) {
         if (token_is_reserved("|")) {
