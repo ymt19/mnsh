@@ -93,6 +93,7 @@ int main(void) {
                 // SIGTTOUを無視すれば,tcsetpgrpを呼び出しても
                 // bgpgrpのすべてのメンバにはSIGTTOUは送られない
                 // childprocessをフォアグラウンドプロセスにする
+                signal(SIGTTOU, SIG_IGN);
                 if (tcsetpgrp(STDOUT_FILENO, cpid) == -1) {
                     perror("tcsetpgrp");
                     exit(1);
@@ -108,6 +109,7 @@ int main(void) {
 
                     // フォアグラウンドプロセスをシェルに戻す
                     // バックグラウンドプロセスからの呼び出し
+                    signal(SIGTTOU, SIG_IGN);
                     if (tcsetpgrp(STDOUT_FILENO, getpgrp()) == -1) {
                         perror("tcsetpgrp");
                         exit(1);
