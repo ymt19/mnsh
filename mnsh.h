@@ -56,11 +56,31 @@ struct Node {
     Node *left;
     Node *right;
     char *cmd[MAXARGV];
+    int ac;
 };
 
 Token *token;   // 着目しているToken
+int is_nkind(Node*, NodeKind);
 Node *expr();
 
 
 /* chexec.c */
 void chexec(Node*);
+
+/* builtin_cmmand.c */
+// ビルトインコマンドの種類
+typedef enum {
+    BC_EXIT,
+    BC_CD,
+    BC_BG,
+    BC_FG,
+    BC_STOP,
+    NOT_BC,         // ビルトインコマンドではない
+} BcmdKind;
+
+// 与えられた引数が
+// どのビルトインコマンドかを判定する
+BcmdKind which_builtin (char*);
+
+// ビルトインコマンドを実行する
+void do_builtin (BcmdKind, Node*);

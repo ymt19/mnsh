@@ -49,59 +49,66 @@ int main(void) {
         // パースする(二分木を作る)
         Node *node = expr();
 
-        // forkして
-        // 子プロセスをコマンドの実行に使用する
-        if ((cpid = fork()) == -1) {
-            // fork error
-            perror("fork");
-            exit(1);
-        } else if (cpid == 0) {
-            // child process
-            // シグナルハンドラの設定をデフォルトに戻す
-            signal(SIGINT, SIG_DFL);
-            signal(SIGQUIT, SIG_DFL);
-            signal(SIGTSTP, SIG_DFL);
-            signal(SIGTTIN, SIG_DFL);
-            signal(SIGTTOU, SIG_DFL);
-
-            // 子プロセスグループがフォアグラウンドプロセスになるまで
-            // 待つ
-            while (tcgetpgrp(STDOUT_FILENO) != getpid()) {
-                ;
-            }
-            // コマンド実行
-            chexec(node);
-            perror(cmd);
-            exit(1);
+        // ビルトインコマンドならforkしない
+        // そうでないなら,forkして子プロセスで実行
+        BcmdKind bkind;
+        if (is_nkind(node, ND_CMD) && (bkind = which_builtin(node->cmd[0])) != NOT_BC) {
+            do_builtin(bkind, node);
         } else {
-            // parent process
-            // child processをプロセスgipから外す
-            if (setpgid(cpid, cpid) == -1) {
-                perror("setpgid");
+            // forkして
+            // 子プロセスをコマンドの実行に使用する
+            if ((cpid = fork()) == -1) {
+                // fork error
+                perror("fork");
                 exit(1);
-            }
+            } else if (cpid == 0) {
+                // child process
+                // シグナルハンドラの設定をデフォルトに戻す
+                signal(SIGINT, SIG_DFL);
+                signal(SIGQUIT, SIG_DFL);
+                signal(SIGTSTP, SIG_DFL);
+                signal(SIGTTIN, SIG_DFL);
+                signal(SIGTTOU, SIG_DFL);
 
-            // SIGTTOUを無視すれば,tcsetpgrpを呼び出しても
-            // bgpgrpのすべてのメンバにはSIGTTOUは送られない
-            // childprocessをフォアグラウンドプロセスにする
-            if (tcsetpgrp(STDOUT_FILENO, cpid) == -1) {
-                perror("tcsetpgrp");
+                // 子プロセスグループがフォアグラウンドプロセスになるまで
+                // 待つ
+                while (tcgetpgrp(STDOUT_FILENO) != getpid()) {
+                    ;
+                }
+                // コマンド実行
+                chexec(node);
+                perror(cmd);
                 exit(1);
-            }
-
-            // コマンドの実行にバックグラウンド実行の指定が無いとき
-            // forkした子プロセスが終了するまでブロック
-            if (node->nkind != ND_BG) {
-                if (waitpid(cpid, &status, WUNTRACED) == -1) {
-                    perror("waitpid");
+            } else {
+                // parent process
+                // child processをプロセスgipから外す
+                if (setpgid(cpid, cpid) == -1) {
+                    perror("setpgid");
                     exit(1);
                 }
 
-                // フォアグラウンドプロセスをシェルに戻す
-                // バックグラウンドプロセスからの呼び出し
-                if (tcsetpgrp(STDOUT_FILENO, getpgrp()) == -1) {
+                // SIGTTOUを無視すれば,tcsetpgrpを呼び出しても
+                // bgpgrpのすべてのメンバにはSIGTTOUは送られない
+                // childprocessをフォアグラウンドプロセスにする
+                if (tcsetpgrp(STDOUT_FILENO, cpid) == -1) {
                     perror("tcsetpgrp");
                     exit(1);
+                }
+
+                // コマンドの実行にバックグラウンド実行の指定が無いとき
+                // forkした子プロセスが終了するまでブロック
+                if (node->nkind != ND_BG) {
+                    if (waitpid(cpid, &status, WUNTRACED) == -1) {
+                        perror("waitpid");
+                        exit(1);
+                    }
+
+                    // フォアグラウンドプロセスをシェルに戻す
+                    // バックグラウンドプロセスからの呼び出し
+                    if (tcsetpgrp(STDOUT_FILENO, getpgrp()) == -1) {
+                        perror("tcsetpgrp");
+                        exit(1);
+                    }
                 }
             }
         }

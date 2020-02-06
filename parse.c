@@ -13,6 +13,7 @@ Node *new_node (NodeKind nkind, Node *left, Node *right, char *s) {
             fprintf(stderr, "%s: too many argments.\n", node->cmd[0]);      // ここのエラーを処理しきれてない
             return NULL;
         }
+        node->ac = ac;
     } else if (nkind == ND_FILE) {
         // 最後尾のNULLとファイル名のみ格納される
         if ((ac == splitspace(s, node->cmd, 2)) > 2) {
@@ -21,6 +22,16 @@ Node *new_node (NodeKind nkind, Node *left, Node *right, char *s) {
         }
     }
     return node;
+}
+
+// nodeの種類が第二引数と一致したら
+// 1を返す, それ以外なら0を返す
+int is_nkind (Node *node, NodeKind nkind) {
+    if (node->nkind == nkind) {
+        return 1;
+    } else {
+        return 0;
+    }
 }
 
 // 再帰下降構文解析
@@ -80,6 +91,7 @@ Node *file() {
 // cmd = word
 Node *cmd() {
     Node *node = new_node(ND_CMD, NULL, NULL, token->str);
+
     token = token->next;
     return node;
 }
