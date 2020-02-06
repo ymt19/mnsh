@@ -9,10 +9,11 @@ Node *new_node (NodeKind nkind, Node *left, Node *right, char *s) {
     int ac;
     if (nkind == ND_CMD) {
         // execvpのためにコマンドをベクタ配列にする
-        if ((ac == splitspace(s, node->cmd, MAXARGV)) > MAXARGV) {
+        if ((ac = splitspace(s, node->cmd, MAXARGV)) > MAXARGV) {
             fprintf(stderr, "%s: too many argments.\n", node->cmd[0]);      // ここのエラーを処理しきれてない
             return NULL;
         }
+        ac--;
         node->ac = ac;
     } else if (nkind == ND_FILE) {
         // 最後尾のNULLとファイル名のみ格納される
