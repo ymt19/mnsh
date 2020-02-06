@@ -14,6 +14,9 @@ int main(void) {
     int status;
     pid_t cpid, pid;
 
+    // ジョブリストを初期化
+    job_tail = NULL;
+
     // 終了するシグナルのシグナルハンドラを指定
     signal(SIGINT, prompt_reset_handler);       /* ^C  */
     signal(SIGQUIT, prompt_reset_handler);      /* ^\  */

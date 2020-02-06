@@ -84,3 +84,21 @@ BcmdKind which_builtin (char*);
 
 // ビルトインコマンドを実行する
 void do_builtin (BcmdKind, Node*);
+
+
+/* job_control.c */
+// ジョブの単位
+typedef struct Job Job;
+struct Job {
+    struct Job *next;   // 次のジョブ
+    char **cmd;         // メッセージに使用
+    pid_t pgid;         // プロセスグループID
+    int job_num;        // ジョブ番号
+};
+
+// ジョブリストの末尾
+Job *job_tail;
+
+Job *new_job(char**, pid_t);
+void print_joblist(void);
+Job *search_job (int);
