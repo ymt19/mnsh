@@ -74,7 +74,7 @@ typedef enum {
     BC_CD,
     BC_BG,
     BC_FG,
-    BC_STOP,
+    BC_JOBS,
     NOT_BC,         // ビルトインコマンドではない
 } BcmdKind;
 

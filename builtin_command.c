@@ -11,8 +11,8 @@ BcmdKind which_builtin (char *cmd) {
         return BC_BG;
     } else if (strcmp(cmd, "fg") == 0) {
         return BC_FG;
-    } else if (strcmp(cmd, "stop") == 0) {
-        return BC_STOP;
+    } else if (strcmp(cmd, "jobs") == 0) {
+        return BC_JOBS;
     } else {
         return NOT_BC;
     }
@@ -32,13 +32,13 @@ void do_builtin (BcmdKind bkind, Node *node) {
         // do_bg(node);
     } else if (bkind == BC_FG) {
         // do_fg(node);
-    } else if (bkind == BC_STOP) {
-        // do_stop(node);
+    } else if (bkind == BC_JOBS) {
+        // do_jobs(node);
     }
 }
 
 void do_exit() {
-    fprintf(stderr, "GodBye!\n");
+    fprintf(stderr, "GoodBye!\n");
     exit(0);
 }
 
