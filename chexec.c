@@ -116,12 +116,14 @@ void do_background (Node *node) {
     // case1
     // 親プロセスでnodeからND_BGを含むかを判定し,waitするかを決める
     // 問題は,文法を付け足した時にND_BGを含むかを判定する
-    // 必要が増える。今回は,ND_BGはnodeの根を見れば分かるので簡単
-    pid_t ppid = getppid();
-    signal(SIGTTOU, SIG_IGN);
+    // 必要が増える。現状は,ND_BGはnodeの根を見れば分かるので簡単
+
+    pid_t ppid;
+    ppid = getppid();
     // 親プロセス側で親プロセスグループをfgpgrpに
     // 変更すると,子プロセスのバックグラウンドジョブで実行された子プロセスが
     // 停止してしまったため,この場合のみ子プロセス側で親プロセスをfgpgrpnに戻した
+    signal(SIGTTOU, SIG_IGN);
     if (tcsetpgrp(STDOUT_FILENO, getpgid(ppid)) == -1) {
         perror("tcsetpgrp");
         exit(1);

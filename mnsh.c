@@ -79,8 +79,7 @@ int main(void) {
                 signal(SIGTTIN, SIG_DFL);
                 signal(SIGTTOU, SIG_DFL);
 
-                // 子プロセスグループがフォアグラウンドプロセスになるまで
-                // 待つ
+                // 子プロセスグループがフォアグラウンドになるまで待つ
                 while (tcgetpgrp(STDOUT_FILENO) != getpid()) {
                     ;
                 }
@@ -90,6 +89,9 @@ int main(void) {
                 exit(1);
             } else {
                 // parent process
+                // jobリストに新しく追加する
+                job = new_job(cp_cmd, cpid, Runnign);
+
                 // child processをプロセスgipから外す
                 if (setpgid(cpid, cpid) == -1) {
                     perror("setpgid");
@@ -105,12 +107,9 @@ int main(void) {
                     exit(1);
                 }
 
-                // jobリストに新しく追加する
-                job = new_job(cp_cmd, cpid, Runnign);
-
-                // コマンドの実行にバックグラウンド実行の指定が無いとき
-                // forkした子プロセスが終了するまでブロック
                 if (node->nkind != ND_BG) {
+                    // コマンドの実行にバックグラウンド実行の指定が無いとき
+                    // forkした子プロセスが終了するまでブロック
                     // 停止した場合もwaitする
                     if (waitpid(cpid, &status, WUNTRACED) == -1) {
                         perror("waitpid");
@@ -134,6 +133,14 @@ int main(void) {
                         perror("tcsetpgrp");
                         exit(1);
                     }
+                } else {
+                    // バックグラウンド実行の指定がある時
+                    // 子プロセス側でtcsetpgrpするので
+                    // 親プロセスがフォアグラウンドになるまで待つ
+                    while (tcgetpgrp(STDOUT_FILENO) != getpid()) {
+                        ;
+                    }
+                    fprintf(stderr, "[%d] PID:%d\n", job->job_num, job->pgid);
                 }
             }
         }
