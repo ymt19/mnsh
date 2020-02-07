@@ -1,5 +1,7 @@
 #include "mnsh.h"
 
+#define PATHNAME_SIZE 1024
+
 // プロンプトの再表示
 void prompt_reset_handler (int sig) {
     fprintf(stderr, "\n");
@@ -8,7 +10,7 @@ void prompt_reset_handler (int sig) {
 }
 
 int main(void) {
-    char cmd[MAXLINE], cp_cmd[MAXLINE];
+    char cmd[MAXLINE], cp_cmd[MAXLINE], path[PATHNAME_SIZE];
     int status, len;
     pid_t cpid, pid;
     Job *job;
@@ -41,8 +43,13 @@ int main(void) {
             }
         }
 
+        if (getcwd(path, sizeof(path)) == NULL) {
+            perror("getcwd");
+            exit(1);
+        }
+
         // プロンプトの表示,文字列受け取り
-        fprintf(stderr, "$ ");
+        fprintf(stderr, "%s:$ ", path);
         fflush(stdin);
         fgets(cmd, MAXLINE, stdin);
         len = strlen(cmd);
