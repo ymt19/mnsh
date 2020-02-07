@@ -79,7 +79,7 @@ void do_bg(Node *node) {
         for (i = 1; i < node->ac; i++) {
             int job_num = atoi(node->cmd[i]);
             // 引数で指定されたジョブ番号から,該当するジョブを探す
-            if ((job = search_job(job_num)) != NULL) {
+            if ((job = search_job_from_jobnum(job_num)) != NULL) {
                 // 見つかって、かつ停止中だったらバックグラウンドで実行する
                 if (job->state == Runnign) {
                     fprintf(stderr, "job %d alerady in background\n", job->job_num);
@@ -107,7 +107,8 @@ void do_fg(Node *node) {
         for (i = 1; i < node->ac; i++) {
             int job_num = atoi(node->cmd[i]);
             // 引数で指定されたジョブ番号から,該当するジョブを探す
-            if ((job = search_job(job_num)) != NULL) {
+            if ((job = search_job_from_jobnum(job_num)) != NULL) {
+                job->state = Runnign;
                 // 見つかったら、jobをフォアグラウンドで実行する
                 // jobをfgpgrpにする
                 signal(SIGTTOU, SIG_IGN);
@@ -122,6 +123,17 @@ void do_fg(Node *node) {
                     perror("waitpid");
                     exit(1);
                 }
+
+                if (WIFEXITED(status) || WIFSIGNALED(status)) {
+                    // 正常終了またはシグナルによって終了した場合
+                    // jobリストから削除
+                    free_job(job);
+                } else {
+                    // そうで無い場合,つまり一時中断した場合
+                    // jobの状態をStoppedにする
+                    set_jobstate(job, Stopped);
+                }
+
                 // fgpgrpを戻す
                 signal(SIGTTOU, SIG_IGN);
                 if (tcsetpgrp(STDOUT_FILENO, getpgrp()) == -1) {

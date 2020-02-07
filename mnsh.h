@@ -10,8 +10,10 @@
 #include <signal.h>
 #include <errno.h>
 
-// 1回の操作のコマンド全体
+// コマンドとその引数を合わせた上限
 #define MAXARGV 100
+// コマンドラインの長さの制限
+#define MAXLINE 4096
 
 
 /* tokenize.c */
@@ -97,15 +99,19 @@ typedef enum {
 typedef struct Job Job;
 struct Job {
     struct Job *next;   // 次のジョブ
-    char **cmd;         // メッセージに使用
+    char cmd[MAXLINE];  // メッセージに使用
     pid_t pgid;         // プロセスグループID
-    JobState state;
+    JobState state;     // ジョブの状態
     int job_num;        // ジョブ番号
 };
 
 // ジョブリストの末尾
 Job *job_tail;
 
-Job *new_job(char**, pid_t, JobState);
+Job *new_job(char*, pid_t, JobState);
+int is_same_job (Job*, Job*);
+void free_job (Job*);
+void set_jobstate (Job*, JobState);
 void print_joblist(void);
-Job *search_job (int);
+Job *search_job_from_jobnum (int);
+Job *search_job_from_pgid (pid_t);

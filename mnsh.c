@@ -1,7 +1,5 @@
 #include "mnsh.h"
 
-#define MAXLINE 4096
-
 // プロンプトの再表示
 void prompt_reset_handler (int sig) {
     fprintf(stderr, "\n");
@@ -10,9 +8,10 @@ void prompt_reset_handler (int sig) {
 }
 
 int main(void) {
-    char cmd[MAXLINE];
-    int status;
+    char cmd[MAXLINE], cp_cmd[MAXLINE];
+    int status, len;
     pid_t cpid, pid;
+    Job *job;
 
     // ジョブリストを初期化
     job_tail = NULL;
@@ -30,7 +29,9 @@ int main(void) {
         // waitする
         for (;;) {
             if ((pid = waitpid(-1, &status, WNOHANG)) > 0) {
-                fprintf(stderr, "PID:[%d] terminated\n", pid);
+                job = search_job_from_pgid(pid);
+                fprintf(stderr, "[%d] Done    %s\n", job->job_num, job->cmd);
+                free_job(job);
             } else if (pid == 0 || errno == ECHILD) {
                 // waitpidするプロセスがない
                 break;
@@ -44,6 +45,11 @@ int main(void) {
         fprintf(stderr, "$ ");
         fflush(stdin);
         fgets(cmd, MAXLINE, stdin);
+        len = strlen(cmd);
+        cmd[len-1] = '\0';
+
+        // jobに渡すため,コピーする
+        strncpy(cp_cmd, cmd, len);
         
         // 入力文字列をトークナイズする
         if ((token = tokenize(cmd)) == NULL) {
@@ -99,12 +105,26 @@ int main(void) {
                     exit(1);
                 }
 
+                // jobリストに新しく追加する
+                job = new_job(cp_cmd, cpid, Runnign);
+
                 // コマンドの実行にバックグラウンド実行の指定が無いとき
                 // forkした子プロセスが終了するまでブロック
                 if (node->nkind != ND_BG) {
+                    // 停止した場合もwaitする
                     if (waitpid(cpid, &status, WUNTRACED) == -1) {
                         perror("waitpid");
                         exit(1);
+                    }
+
+                    if (WIFEXITED(status) || WIFSIGNALED(status)) {
+                        // 正常終了またはシグナルによって終了した場合
+                        // jobリストから削除
+                        free_job(job);
+                    } else {
+                        // そうで無い場合,つまり一時中断した場合
+                        // jobの状態をStoppedにする
+                        set_jobstate(job, Stopped);
                     }
 
                     // フォアグラウンドプロセスをシェルに戻す
