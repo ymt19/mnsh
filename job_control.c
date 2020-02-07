@@ -58,8 +58,13 @@ void print_joblist () {
     Job *job;
     char *str;
     for (job = job_tail; job != NULL; job = job->next) {
-        fprintf(stdout, "[%d] ", job->job_num);
-        fprintf(stdout, "%s", job->cmd);
+        fprintf(stdout, "[%d]\t", job->job_num);
+        if (job->state == Runnign) {
+            fprintf(stdout, "Runnig  ");
+        } else if (job->state == Stopped) {
+            fprintf(stdout, "Stopped ");
+        }
+        fprintf(stdout, "\t\t%s", job->cmd);
         fprintf(stdout, "\n");
     }
 }
