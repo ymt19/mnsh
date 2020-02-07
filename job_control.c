@@ -1,10 +1,11 @@
 #include "mnsh.h"
 
 // 新しいジョブの情報を保存する
-Job *new_job (char **cmd, pid_t pgid) {
+Job *new_job (char **cmd, pid_t pgid, JobState state) {
     Job *job = (Job*) malloc (sizeof(Job));
     job->cmd = cmd;
     job->pgid = pgid;
+    job->state = state;
     // ジョブ番号の設定
     if (job_tail == NULL) job->job_num = 0;
     else job->job_num = job_tail->job_num+1;
