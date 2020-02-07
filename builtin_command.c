@@ -127,6 +127,7 @@ void do_fg(Node *node) {
                 if (WIFEXITED(status) || WIFSIGNALED(status)) {
                     // 正常終了またはシグナルによって終了した場合
                     // jobリストから削除
+                    fprintf(stderr, "[%d] Done    %s\n", job->job_num, job->cmd);
                     free_job(job);
                 } else {
                     // そうで無い場合,つまり一時中断した場合
