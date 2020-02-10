@@ -2,13 +2,6 @@
 
 #define PATHNAME_SIZE 1024
 
-// プロンプトの再表示
-void prompt_reset_handler (int sig) {
-    fprintf(stderr, "\n");
-    fprintf(stderr, "$ ");
-    fflush(stdin);
-}
-
 int main(void) {
     char cmd[MAXLINE], cp_cmd[MAXLINE], path[PATHNAME_SIZE];
     int status, len;
@@ -19,9 +12,9 @@ int main(void) {
     job_tail = NULL;
 
     // 終了するシグナルのシグナルハンドラを指定
-    signal(SIGINT, prompt_reset_handler);       /* ^C  */
-    signal(SIGQUIT, prompt_reset_handler);      /* ^\  */
-    signal(SIGTSTP, prompt_reset_handler);      /* ^Z  */
+    signal(SIGINT, SIG_IGN);        /* ^C  */
+    signal(SIGQUIT, SIG_IGN);       /* ^\  */
+    signal(SIGTSTP, SIG_IGN);       /* ^Z  */
     signal(SIGTTIN, SIG_IGN);
     signal(SIGTTOU, SIG_IGN);
 
