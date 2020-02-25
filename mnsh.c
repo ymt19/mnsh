@@ -72,17 +72,18 @@ int main(void) {
                 exit(1);
             } else if (cpid == 0) {
                 // child process
+                // 子プロセスグループがフォアグラウンドになるまで待つ
+                while (tcgetpgrp(STDOUT_FILENO) != getpid()) {
+                    ;
+                }
+
                 // シグナルハンドラの設定をデフォルトに戻す
                 signal(SIGINT, SIG_DFL);
                 signal(SIGQUIT, SIG_DFL);
                 signal(SIGTSTP, SIG_DFL);
                 signal(SIGTTIN, SIG_DFL);
                 signal(SIGTTOU, SIG_DFL);
-
-                // 子プロセスグループがフォアグラウンドになるまで待つ
-                while (tcgetpgrp(STDOUT_FILENO) != getpid()) {
-                    ;
-                }
+                
                 // コマンド実行
                 chexec(node);
                 perror(cmd);
