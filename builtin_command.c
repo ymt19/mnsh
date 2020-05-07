@@ -1,5 +1,11 @@
 #include "mnsh.h"
 
+static void do_exit();
+static void do_cd(Node*);
+static void do_bg(Node*);
+static void do_fg(Node*);
+static void do_jobs();
+
 // 実装済みビルトインコマンドなら値するBcmdKindを返し
 // NOT_BCを返す
 BcmdKind which_builtin (char *cmd) {
@@ -17,12 +23,6 @@ BcmdKind which_builtin (char *cmd) {
         return NOT_BC;
     }
 }
-
-void do_exit();
-void do_cd(Node*);
-void do_bg(Node*);
-void do_fg(Node*);
-void do_jobs();
 
 // bkindで指定された内部コマンドを実行する
 void do_builtin (BcmdKind bkind, Node *node) {
@@ -86,7 +86,7 @@ void do_bg(Node *node) {
                 } else {
                     job->state = Runnign;
                     fprintf(stderr, "[%d] Runnig", job->job_num);
-                    killpg(job->pgid, SIGCONT);
+                    kill(job->pgid, SIGCONT);
                 }
             } else {
                 fprintf(stderr, "bg: %d: no such job\n", job_num);
@@ -117,7 +117,7 @@ void do_fg(Node *node) {
                     exit(1);
                 }
                 // jobの実行を再開する
-                killpg(job->pgid, SIGCONT);
+                kill(job->pgid, SIGCONT);
                 // プロセスグループリーダーが終了または停止しるまで待つ 
                 if (waitpid(job->pgid, &status, WUNTRACED) == -1) {
                     perror("waitpid");
