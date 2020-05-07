@@ -124,7 +124,7 @@ void do_background (Node *node) {
     // 変更すると,子プロセスのバックグラウンドジョブで実行された子プロセスが
     // 停止してしまったため,この場合のみ子プロセス側で親プロセスをfgpgrpnに戻した
     signal(SIGTTOU, SIG_IGN);
-    if (tcsetpgrp(STDOUT_FILENO, getpgid(ppid)) == -1) {
+    if (tcsetpgrp(STDOUT_FILENO, ppid) == -1) {
         perror("tcsetpgrp");
         exit(1);
     }
